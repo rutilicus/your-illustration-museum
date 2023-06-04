@@ -25,7 +25,7 @@ async function init() {
     return;
   }
   const files = await response.text();
-  files.split(/\r\n|\r/).forEach(line => {
+  files.split(/\r\n|\r|\n/).forEach(line => {
     if (line) {
       const count = imageNum++;
       const img = new Image();
