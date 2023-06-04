@@ -1,14 +1,11 @@
 import * as THREE from 'three'
 import { FirstPersonControls } from 'three/examples/jsm/controls/FirstPersonControls'
-import GUI from 'lil-gui'
 
 let camera: THREE.PerspectiveCamera;
 let renderer: THREE.WebGLRenderer;
 let cameraControl: FirstPersonControls;
 
 async function init() {
-  THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1);
-
   const clock = new THREE.Clock();
 
   // create Three.js Scene and Renderer.
@@ -57,9 +54,8 @@ async function init() {
         );
         illustration.position.set(
           (count + 0.5) * roomSizePerElem,
-          roomSizePerElem - 0.1,
-          roomSizePerElem / 2);
-        illustration.rotation.x = Math.PI / 2;
+          roomSizePerElem / 2,
+          0.1);
         illustration.receiveShadow = true;
         scene.add(illustration);
 
@@ -70,14 +66,13 @@ async function init() {
           new THREE.PlaneGeometry(illustrationWidth + 0.1, illustrationHeight + 0.1),
           frameMaterial
         );
-        frame.position.set(illustration.position.x, illustration.position.y + 0.01, illustration.position.z);
-        frame.rotation.x = Math.PI / 2;
+        frame.position.set(illustration.position.x, illustration.position.y, illustration.position.z - 0.01);
         frame.receiveShadow = true;
         scene.add(frame);
 
         // add ceilingLight to scene.
         const ceilingLight = new THREE.PointLight(0xffffff);
-        ceilingLight.position.set(illustration.position.x, roomSizePerElem / 2, roomSizePerElem - 0.1);
+        ceilingLight.position.set(illustration.position.x, roomSizePerElem - 0.1, roomSizePerElem / 2);
         ceilingLight.decay = 3;
         ceilingLight.distance = 5;
         ceilingLight.intensity = 1;
@@ -85,7 +80,7 @@ async function init() {
 
         // add spotLight to scene.
         const spotLight = new THREE.SpotLight(0xffffff);
-        spotLight.position.set(illustration.position.x, roomSizePerElem / 2 + 0.1, roomSizePerElem - 0.1);
+        spotLight.position.set(illustration.position.x, roomSizePerElem - 0.1, roomSizePerElem / 2 - 0.1);
         spotLight.castShadow = true;
         spotLight.target = illustration;
         spotLight.decay = 3;
@@ -113,47 +108,31 @@ async function init() {
   const cameraHeight = 1.7;
   camera = new THREE.PerspectiveCamera(
     45, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0.1, roomSizePerElem / 2, cameraHeight);
-  camera.lookAt(new THREE.Vector3(imageNum * roomSizePerElem, roomSizePerElem, cameraHeight));
-  // camera.up = new THREE.Vector3(0, 0, 1);
-  // camera.rotation.z = 0;
-
-  const control = {lx: imageNum * roomSizePerElem, ly: roomSizePerElem, lz: cameraHeight};
-  const gui = new GUI();
-  gui.add(control, 'lx', -100, 100);
-  gui.add(control, 'ly', -100, 100);
-  gui.add(control, 'lz', -100, 100);
+  camera.position.set(0.5, cameraHeight, roomSizePerElem / 2);
+  camera.lookAt(new THREE.Vector3(imageNum * roomSizePerElem, cameraHeight, roomSizePerElem));
 
   // set camera control
   cameraControl = new FirstPersonControls(camera, renderer.domElement);
-  cameraControl.lookSpeed = 0.005;
+  cameraControl.lookSpeed = 0.05;
   cameraControl.movementSpeed = 2;
-  cameraControl.activeLook = false;
-  cameraControl.lookVertical = false;
+  cameraControl.lookVertical = true;
   cameraControl.constrainVertical = true;
-  cameraControl.verticalMin = 1.0;
-  cameraControl.verticalMax = 2.0;
-  // camera.rotation.z = 0;
-  // cameraControl.lookAt(imageNum * roomSizePerElem, roomSizePerElem, cameraHeight);
-  // cameraControl.object.applyQuaternion(camera.quaternion);
-  // cameraControl.constrainVertical = true;
+  cameraControl.verticalMin = Math.PI / 4;
+  cameraControl.verticalMax = Math.PI / 4 * 3;
 
   document.getElementById("WebGL-output")?.appendChild(renderer.domElement);
 
+  // ここで一度handleResizeを投げないとFirstPersonControlsが内部で持っているウインドウサイズが正しく処理されない
+  cameraControl.handleResize();
   render();
 
   function render() {
     cameraControl.update(clock.getDelta());
-    // camera.position.x = control.cx;
-    // camera.position.y = control.cy;
-    // camera.position.z = control.cz;
-    // camera.rotation.x = control.crx;
-    // camera.rotation.y = control.cry;
-    // camera.rotation.z = control.crz;
-    // camera.quaternion.x = control.cqx;
-    // camera.quaternion.y = control.cqy;
-    // camera.quaternion.z = control.cqz;
-    // camera.quaternion.w = control.cqw;
+
+    // camera position adjustment
+    camera.position.x = THREE.MathUtils.clamp(camera.position.x, 0.5, imageNum * roomSizePerElem - 0.5);
+    camera.position.y = cameraHeight;
+    camera.position.z = THREE.MathUtils.clamp(camera.position.z, 0.5, roomSizePerElem - 0.5);
 
     renderer.clear();
     requestAnimationFrame(render);
