@@ -3,6 +3,7 @@
 
 # 動作例
 [こちら](https://rutilicus.github.io/your-illustration-museum/)を参照してください。
+WASDキーでカメラ位置移動、マウスカーソル移動でカメラ方向移動になります。
 
 # 使用方法
 Releasesからファイルをダウンロード、任意のフォルダ内に展開してサーバにアップロードしてください。
